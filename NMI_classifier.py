@@ -32,7 +32,41 @@ def one_hot_encode(labels):
 dataset = 'sonar.all-data.csv'
 X,Y = read_dataset(dataset)
 X,Y = shuffle(X,Y,random_state = 1)
+train_x, test_x, train_y, test_y = train_test_split(X,Y,test_size = 0.2,random_state = 42)
 
+# Set learning parameters
+learning_rate = 0.3
+learning_epochs = 1000
+cost_history = np.empty(shape = [1],dtype = float)
+n_dim = X.shape[1]
+n_class = 2
+
+n_hidden_1 = 60
+n_hidden_2 = 60
+n_hidden_3 = 60
+n_hidden_4 = 60
+
+W = tf.Variable(tf.zeros([n_dim,n_class]))
+b = tf.Variable(tf.zeros([n_class]))
+x = tf.placeholder(tf.float32,[None,n_dim])
+y_ = tf.placeholder(tf.float32,[None,n_class])
+
+# Define the model
+def multilayer_perceptron(x,weights,biases):
+	layer_1 = tf.add(tf.matmul(x,weights['h1']),biases['b1'])
+	layer_1 = tf.nn.relu(layer_1)
+
+	layer_2 = tf.add(tf.matmul(layer_1,weights['h2']),biases['b2'])
+	layer_2 = tf.nn.sigmoid(layer_2)
+
+	layer_3 = tf.add(tf.matmul(layer_2,weights['h3']),biases['b3'])
+	layer_3 = tf.nn.sigmoid(layer_3)
+
+	layer_4 = tf.add(tf.matmul(layer_3,weights['h4']),biases['b4'])
+	layer_4 = tf.nn.relu(layer_4)
+
+	out_layer = tf.add(tf.matmul(layer_4,weights['out']),biases['out'])
+	return out_layer
 
 
 
