@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt 
 import tensorflow as tf
 import numpy as np 
@@ -6,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-model_path = '/Users/Mike/Desktop/CNN_test/NavalMineIdentifier_classify/'
+model_path = '/Users/Mike/Desktop/DeepLearning/NavalMineIdentifier_classify/'
 
 def read_dataset(dataset):
 	#read into a dataframe
@@ -38,7 +40,7 @@ train_x, test_x, train_y, test_y = train_test_split(X,Y,test_size = 0.2,random_s
 
 # Set learning parameters
 learning_rate = 0.3
-learning_epochs = 100
+learning_epochs = 1000
 cost_history = np.empty(shape = [1],dtype = float)
 n_dim = X.shape[1]
 n_class = 2
@@ -53,7 +55,8 @@ b = tf.Variable(tf.zeros([n_class]))
 x = tf.placeholder(tf.float32,[None,n_dim])
 y_ = tf.placeholder(tf.float32,[None,n_class])
 
-# Define the model
+
+# Define the model, can play with relu vs sigmoid output at each layer
 def multilayer_perceptron(x,weights,biases):
 	layer_1 = tf.add(tf.matmul(x,weights['h1']),biases['b1'])
 	layer_1 = tf.nn.relu(layer_1)
@@ -92,6 +95,7 @@ saver = tf.train.Saver()
 
 y = multilayer_perceptron(x,weights,biases)
 
+# Using cross entropy with softmax, optimized with gradient descent
 cost_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = y, labels = y_))
 training_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost_function)
 
@@ -100,6 +104,9 @@ sess.run(init)
 
 mse_history = []
 accuracy_history = []
+
+
+# Train the model
 
 for epoch in range(learning_epochs):
 	sess.run(training_step,feed_dict={x:train_x,y_:train_y})
@@ -117,14 +124,27 @@ for epoch in range(learning_epochs):
 
 	print("Epoch: ",epoch,' - cost: ',cost, ' - MSE: ',mse_,' - Train accuracy: ',accuracy)
 
+# Save the model
 save_path = saver.save(sess,model_path)
 print("Model saved in file %s:" % save_path)
 
-
+# Plot error/accuracy
 plt.plot(mse_history,'r')
 plt.show()
 plt.plot(accuracy_history)
 plt.show()
+
+# Print final accuracy information
+correct_prediction = tf.equal(tf.argmax(y,1),tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction,tf.float32))
+print('Test Accuracy: ',sess.run(accuracy,feed_dict = {x:test_x,y_:test_y}))
+
+# Print final MSE information
+pred_y = sess.run(y,feed_dict={x:test_x})
+mes = tf.reduce_mean(tf.square(pred_y-test_y))
+print('MSE: %.4f' % sess.run(mse))
+
+
 
 
 
